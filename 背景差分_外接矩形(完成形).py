@@ -2,23 +2,25 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-#読み込む画像の指定
-path = '/home/pi/gazou/coin.jpg'
 
 # 画像の読み込み
-img_src1 = cv2.imread("/home/pi/gazou/haikei.jpg", 1)
-img_src2 = cv2.imread("/home/pi/gazou/coin.jpg", 1)
+img_src1 = cv2.imread("/home/pi/gazou/haikei.jpg", 1)   #背景のみの画像
+img_src2 = cv2.imread("/home/pi/gazou/coin.jpg", 1)   #物が写っている画像
 
-img_src1 = img_src1[20:450, 150:580]
-img_src2 = img_src2[20:450, 150:580]
+img_src1 = img_src1[20:450, 150:580]    #物が写っている部分と同じ領域の切り出し
+img_src2 = img_src2[20:450, 150:580]    #対象物とその周辺のみを切り出し
+
 """
+#グレースケール変換（必要なら）
 img_src1 = cv2.cvtColor(img_src1, cv2.COLOR_BGR2GRAY)
 img_src2 = cv2.cvtColor(img_src2, cv2.COLOR_BGR2GRAY)
 """
+#背景差分をするためのアルゴリズム3種（状況に応じて変えることがあるかも？）
 fgbg = cv2.bgsegm.createBackgroundSubtractorMOG()
 #fgbg = cv2.createBack変換groundSubtractorMOG2() 
 #fgbg = cv2.bgsegm.createBackgroundSubtractorGSOC()
 
+#画像をアルゴリズムに入れる
 fgmask = fgbg.apply(img_src1)
 fgmask = fgbg.apply(img_src2)
 
@@ -26,24 +28,28 @@ fgmask = fgbg.apply(img_src2)
 cv2.imshow('frame',fgmask)
 cv2.waitKey(0)
 
-# 検出画像
+# 検出画像 (二値画像で表示される）
 bg_diff_path  = 'home/pi/gazou/sabun.jpg'
 cv2.imwrite('/home/pi/gazou/sabun.jpg',fgmask)
-cv2.waitKey(0)
+cv2.waitKey(1)
 
 """
-# 色の反転
+# 色の反転（必要なら）
 coins_binary = cv2.bitwise_not(coins_binary)
 cv2.imshow("white", coins_binary)
 cv2.waitKey(0)
 cv2.imwrite('/home/pi/gazou/coins_binary.jpg', coins_binary)
 """
-# 輪郭検出
+
+# 輪郭検出（黒と白の境界線を輪郭とする）
 _, coins_contours, _ = cv2.findContours(fgmask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
  
-# coins_and_contoursにcoinsをコピー
+# coins_and_contoursに元の画像をコピー
 coins_and_contours = np.copy(img_src2)
- 
+
+
+#ここから他の場合と同じ------------------------------------------------------------------------------------------------
+
 # 何個かあるかカウント
 min_coin_area = 60
 large_contours = [cnt for cnt in coins_contours if cv2.contourArea(cnt) > min_coin_area]
@@ -65,6 +71,7 @@ bounding_img = np.copy(img_src2)
 for contour in large_contours:
     x, y, w, h = cv2.boundingRect(contour)
     gaisetu = cv2.rectangle(bounding_img, (x, y), (x + w, y + h), (0, 255, 0), 3)
+   
 cv2.imshow("white", gaisetu)
 cv2.waitKey(0)
 
@@ -78,7 +85,10 @@ for contour in large_contours:
     cv2.waitKey(0)
 
 
-#ここから合成
+
+#ここから合成(別途上げるが、試したついでにそのまま）------------------------------------------------------------
+
+
 gousei = cv2.imread('/home/pi/gazou/gousei.jpg')
 gousei2 = crop
 
