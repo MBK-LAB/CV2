@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 path = '/home/pi/gazou/coin.jpg'
 
 coins = cv2.imread(path)	#画像の読み込み
-coins = coins[20:450, 150:580]
+coins = coins[20:450, 150:580]  #不純物が画像内にないように、あらかじめ対象物周りを切り取る　[y座標小:ｙ座標大, x座標小:x座標大]の四角で切り抜く
 coins_gray = cv2.cvtColor(coins, cv2.COLOR_BGR2GRAY)	#画像をグレースケールに変換
 coins_preprocessed = cv2.GaussianBlur(coins_gray, (5, 5), 0)	#画像のぼかし
 
@@ -17,7 +17,7 @@ cv2.waitKey(1)
 # 画像の閾値処理
 _, coins_binary = cv2.threshold(coins_preprocessed, 90, 255, cv2.THRESH_BINARY)
 
-# 色の反転
+# 色の反転　（必要なら）
 #coins_binary = cv2.bitwise_not(coins_binary)
 cv2.imshow("coin_bw", coins_binary)
 cv2.waitKey(1)
@@ -30,7 +30,7 @@ _, coins_contours, _ = cv2.findContours(coins_binary, cv2.RETR_EXTERNAL, cv2.CHA
 coins_and_contours = np.copy(coins)
  
 # 何個かあるかカウント
-min_coin_area = 60
+min_coin_area = 60　#これより大きい面積の輪郭内側をカウント
 large_contours = [cnt for cnt in coins_contours if cv2.contourArea(cnt) > min_coin_area]
  
 # 輪郭を描写　（引数　＝＝＝　1：入力画像	2：listとして保存されている輪郭	3：listの何番目の輪郭か（−1なら全部）	4~：輪郭線の情報）
@@ -48,21 +48,21 @@ bounding_img = np.copy(coins)
  
 # 外接矩形の描写
 for contour in large_contours:
-    x, y, w, h = cv2.boundingRect(contour)
+    x, y, w, h = cv2.boundingRect(contour)　#外接矩形の座標の獲得
     gaisetu = cv2.rectangle(bounding_img, (x, y), (x + w, y + h), (0, 255, 0), 3)
 cv2.imshow("coin_gaisetu", gaisetu)
 cv2.waitKey(0)
 cv2.imwrite('/home/pi/gazou/gaisetu.jpg', gaisetu)
 
 
-i = 1
+i = 1    #複数の外接矩形を保存するためのカウント変数
 #外接矩形で切り取る
 for contour in large_contours:
     x, y, w, h = cv2.boundingRect(contour)
     gaisetu = cv2.rectangle(bounding_img, (x, y), (x + w, y + h), (0, 255, 0), 3)
-    crop = gaisetu[y:y+h, x:x+w]
+    crop = gaisetu[y:y+h, x:x+w]　#外接矩形で切り取る
     cv2.imshow("white3", crop)
     cv2.waitKey(0)
-    cv2.imwrite('/home/pi/gazou/2kiritori'+str(i)+'.jpg', crop)
+    cv2.imwrite('/home/pi/gazou/2kiritori'+str(i)+'.jpg', crop)  #変数iを使用して連番保存
     cv2.waitKey(1)
-    i = i + 1
+    i = i + 1　#iのカウントを増やす
