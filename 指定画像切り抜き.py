@@ -8,7 +8,7 @@ file_name = input()	#画像名の取得
 path = '/home/pi/gazou/'+file_name+'.jpg'
 
 origin = cv2.imread(path)	#画像の読み込み
-origin = origin[20:450, 150:580]
+origin = origin[20:450, 150:580]    #指定箇所の切り抜き 余計物が入らないように切り抜く
 gray = cv2.cvtColor(origin, cv2.COLOR_BGR2GRAY)	#画像をグレースケールに変換
 preprocessed = cv2.GaussianBlur(gray, (5, 5), 0)	#画像のぼかし
 
